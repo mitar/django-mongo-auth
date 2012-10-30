@@ -1,5 +1,7 @@
-$(document).ready(function () {
-    $('#browserid_submit').submit(function (event) {
-        $(this).parent().submit();
+(function ($) {
+    $(document).ready(function () {
+        $('#browserid_submit').submit(function (event) {
+            $(this).parent().submit();
+        });
     });
-});
+})(jQuery);
