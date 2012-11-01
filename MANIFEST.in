@@ -1,0 +1,6 @@
+recursive-include mongo_auth/static *
+recursive-include mongo_auth/contrib/static *
+include docs/Makefile docs/*.py docs/*.rst
+include COPYING
+include LICENSE
+include *.py *.txt *.rst

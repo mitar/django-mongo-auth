@@ -7,9 +7,9 @@ from django.utils import crypto, importlib
 from mongoengine import queryset
 from mongoengine.django import auth
 
-from django_browserid import auth as browserid_auth, base as browserid_base
-
 import tweepy
+
+from django_browserid import auth as browserid_auth, base as browserid_base
 
 from . import models
 

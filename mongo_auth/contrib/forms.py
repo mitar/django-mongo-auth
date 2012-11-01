@@ -1,7 +1,6 @@
 from django import forms
-from django.utils.translation import ugettext_lazy as _
-
 from django.forms.extras import widgets
+from django.utils.translation import ugettext_lazy as _
 
 from . import fields, form_fields, models
 from .. import forms as base_forms
