@@ -1,4 +1,4 @@
-{% extends "mongo_socialauth/base.html" %}
+{% extends "mongo_auth/base.html" %}
 
 {% load future i18n %}
 
@@ -9,7 +9,7 @@
         <h1>{% trans "Registration" %}</h1>
         {% with form_submit=_("Register") %}
             {% url "registration" as form_action %}
-            {% include "mongo_socialauth/form.html" %}
+            {% include "mongo_auth/form.html" %}
         {% endwith %}
     </div>
 {% endblock %}

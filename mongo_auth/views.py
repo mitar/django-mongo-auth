@@ -248,7 +248,7 @@ class RegistrationView(edit_views.FormView):
     New user is authenticated, logged in and redirected to home page.
     """
 
-    template_name = 'mongo_socialauth/registration.html'
+    template_name = 'mongo_auth/registration.html'
     # TODO: Redirect users to the page they initially came from
     success_url = urlresolvers.reverse_lazy('home')
     form_class = forms.RegistrationForm
@@ -286,7 +286,7 @@ class AccountChangeView(edit_views.FormView):
     This view displays form for updating user account. It checks if all fields are valid and updates it.
     """
 
-    template_name = 'mongo_socialauth/account.html'
+    template_name = 'mongo_auth/account.html'
     form_class = forms.AccountChangeForm
     success_url = urlresolvers.reverse_lazy('account')
 
@@ -322,7 +322,7 @@ class PasswordChangeView(edit_views.FormView):
     This view displays form for changing password.
     """
 
-    template_name = 'mongo_socialauth/password_change.html'
+    template_name = 'mongo_auth/password_change.html'
     form_class = forms.PasswordChangeForm
     success_url = urlresolvers.reverse_lazy('account')
 
@@ -341,7 +341,7 @@ class PasswordChangeView(edit_views.FormView):
         return form_class(self.request.user, **self.get_form_kwargs())
 
 class EmailConfirmationSendToken(edit_views.FormView):
-    template_name = 'mongo_socialauth/email_confirmation_send_token.html'
+    template_name = 'mongo_auth/email_confirmation_send_token.html'
     form_class = forms.EmailConfirmationSendTokenForm
     success_url = urlresolvers.reverse_lazy('account')
 
@@ -359,10 +359,10 @@ class EmailConfirmationSendToken(edit_views.FormView):
             'user': user,
         }
 
-        subject = loader.render_to_string('mongo_socialauth/confirmation_email_subject.txt', context)
+        subject = loader.render_to_string('mongo_auth/confirmation_email_subject.txt', context)
         # Email subject *must not* contain newlines
         subject = ''.join(subject.splitlines())
-        email = loader.render_to_string('mongo_socialauth/confirmation_email.txt', context)
+        email = loader.render_to_string('mongo_auth/confirmation_email.txt', context)
 
         user.email_confirmation_token = models.EmailConfirmationToken(value=confirmation_token)
         user.save()
@@ -376,7 +376,7 @@ class EmailConfirmationSendToken(edit_views.FormView):
         return super(EmailConfirmationSendToken, self).dispatch(request, *args, **kwargs)
 
 class EmailConfirmationProcessToken(generic_views.FormView):
-    template_name = 'mongo_socialauth/email_confirmation_process_token.html'
+    template_name = 'mongo_auth/email_confirmation_process_token.html'
     form_class = forms.EmailConfirmationProcessTokenForm
     success_url = urlresolvers.reverse_lazy('account')
 

@@ -1,4 +1,4 @@
-{% extends "mongo_socialauth/base.html" %}
+{% extends "mongo_auth/base.html" %}
 
 {% load future i18n %}
 
@@ -11,7 +11,7 @@
             {% blocktrans with email=user.email %}Clicking the button below will send a confirmation mail to {{ email }}.{% endblocktrans %}
         </p>
         {% with form_submit=_("Click here to confirm your e-mail address") %}
-            {% include "mongo_socialauth/form.html" %}
+            {% include "mongo_auth/form.html" %}
         {% endwith %}
         <dl class="faq">
             <dt>{% trans "Why should I confirm my e-mail address?" %}</dt>

@@ -14,7 +14,7 @@ import tweepy
 from . import models
 
 LAZYUSER_USERNAME_TEMPLATE = 'guest-%s'
-USER_CLASS = 'mongo_socialauth.models.User'
+USER_CLASS = 'mongo_auth.models.User'
 
 def get_class(path):
     i = path.rfind('.')

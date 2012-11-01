@@ -9,7 +9,7 @@ def build_patterns(alternative_views=None):
     return patterns('',
         # Registration, login, logout
         url(r'^register/$', get_view('RegistrationView').as_view(), name='registration'),
-        url(r'^login/$', 'django.contrib.auth.views.login', {'template_name': 'mongo_socialauth/login.html'}, name='login'),
+        url(r'^login/$', 'django.contrib.auth.views.login', {'template_name': 'mongo_auth/login.html'}, name='login'),
         url(r'^logout/$', get_view('logout'), name='logout'),
 
         # Facebook

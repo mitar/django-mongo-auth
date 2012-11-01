@@ -15,7 +15,7 @@ from . import utils
 
 USERNAME_REGEX = r'[\w.@+-]+'
 CONFIRMATION_TOKEN_VALIDITY = 5 # days
-DEFAULT_USER_IMAGE = 'mongo_socialauth/images/unknown.png'
+DEFAULT_USER_IMAGE = 'mongo_auth/images/unknown.png'
 
 # Used to reconstruct absolute/full URLs where request is not available
 DEFAULT_REQUEST = {

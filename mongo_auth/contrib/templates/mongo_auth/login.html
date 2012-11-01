@@ -1,4 +1,4 @@
-{% extends "mongo_socialauth/base.html" %}
+{% extends "mongo_auth/base.html" %}
 
 {% load future i18n %}
 
@@ -11,13 +11,13 @@
             {% with next|default:request_get_next|default:LOGIN_REDIRECT_URL as next %}
                 {% trans "Login" as form_submit %}
                 {% url "login" as form_action %}
-                {% include "mongo_socialauth/form.html" %}
+                {% include "mongo_auth/form.html" %}
             {% endwith %}
             <a href="{% url "registration" %}" class="buttons">{% trans "Register" %}</a>
         </div>
         <div id="other_login_options">
             <ul>
-                {% include "mongo_socialauth/other_login_options.html" %}
+                {% include "mongo_auth/other_login_options.html" %}
             </ul>
         </div>
     </div>
