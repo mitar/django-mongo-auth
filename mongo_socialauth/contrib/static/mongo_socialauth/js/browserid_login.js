@@ -1,7 +1,7 @@
 (function ($) {
     $(document).ready(function () {
         $('#browserid_submit').submit(function (event) {
-            $(this).parent().submit();
+            $(this).closest('form').submit();
         });
     });
 })(jQuery);

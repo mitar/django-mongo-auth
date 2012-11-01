@@ -1,15 +1,14 @@
-{% extends "plain.html" %}
+{% extends "mongo_socialauth/base.html" %}
 
 {% load future i18n %}
 
 {% block title %}{% trans "Account" %}{% endblock %}
 
 {% block content %}
-    {% include "user/menu.html" %}
-    <div class="account">
+    <div class="account accountchange">
         <h1>{% trans "Account" %}</h1>
         {% with form_submit=_("Submit") %}
-            {% include "form/form.html" %}
+            {% include "mongo_socialauth/form.html" %}
         {% endwith %}
         <div id="password_change">
             <p><a href="{% url "password_change" %}">{% trans "Change your password" %}</a></p>

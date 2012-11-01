@@ -1,10 +1,9 @@
-import datetime, hashlib, urllib, uuid
+import hashlib, urllib
 
 from django.conf import settings
 from django.contrib.auth import hashers, models as auth_models
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.core import mail
-from django.db import models
 from django.test import client
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -12,28 +11,17 @@ from django.utils.translation import ugettext_lazy as _
 import mongoengine
 from mongoengine.django import auth
 
-from missing import timezone as timezone_missing
+from . import utils
 
-from . import fields, utils
-from .. import panels
-
-LOWER_DATE_LIMIT = 366 * 120 # days
 USERNAME_REGEX = r'[\w.@+-]+'
 CONFIRMATION_TOKEN_VALIDITY = 5 # days
+DEFAULT_USER_IMAGE = 'mongo_socialauth/images/unknown.png'
 
-def upper_birthdate_limit():
-    return timezone_missing.to_date(timezone.now())
-
-def lower_birthdate_limit():
-    return timezone_missing.to_date(timezone.now() - datetime.timedelta(days=LOWER_DATE_LIMIT))
-
-def generate_channel_id():
-    return uuid.uuid4()
-
-class Connection(mongoengine.EmbeddedDocument):
-    http_if_none_match = mongoengine.StringField()
-    http_if_modified_since = mongoengine.StringField()
-    channel_id = mongoengine.StringField()
+# Used to reconstruct absolute/full URLs where request is not available
+DEFAULT_REQUEST = {
+    'SERVER_NAME': '127.0.0.1',
+    'SERVER_PORT': '8000',
+}
 
 class EmailConfirmationToken(mongoengine.EmbeddedDocument):
     value = mongoengine.StringField(max_length=20, required=True)
@@ -62,11 +50,6 @@ class User(auth.User):
     )
     lazyuser_username = mongoengine.BooleanField(default=True)
 
-    birthdate = fields.LimitedDateTimeField(upper_limit=upper_birthdate_limit, lower_limit=lower_birthdate_limit)
-    gender = fields.GenderField()
-    language = fields.LanguageField()
-    channel_id = mongoengine.UUIDField(default=generate_channel_id)
-
     facebook_access_token = mongoengine.StringField(max_length=150)
     facebook_profile_data = mongoengine.DictField()
 
@@ -81,27 +64,12 @@ class User(auth.User):
 
     browserid_profile_data = mongoengine.DictField()
 
-    connections = mongoengine.ListField(mongoengine.EmbeddedDocumentField(Connection))
-    connection_last_unsubscribe = mongoengine.DateTimeField()
-    is_online = mongoengine.BooleanField(default=False)
-
     email_confirmed = mongoengine.BooleanField(default=False)
     email_confirmation_token = mongoengine.EmbeddedDocumentField(EmailConfirmationToken)
 
-    # TODO: Model for panel settings should be more semantic.
-    panels_collapsed = mongoengine.DictField()
-    panels_order = mongoengine.DictField()
-
-    @models.permalink
-    def get_absolute_url(self):
-        return ('profile', (), {'username': self.username})
-
-    def get_profile_url(self):
-        return self.get_absolute_url()
-
-    def get_panels(self):
-        # TODO: Should return only panels user has enabled (should make sure users can enable panels only in the way that dependencies are satisfied)
-        return panels.panels_pool.get_all_panels()
+    @classmethod
+    def get_initial_fields(cls, request):
+        return {}
 
     def is_anonymous(self):
         return not self.is_authenticated()
@@ -129,6 +97,10 @@ class User(auth.User):
         return hashers.is_password_usable(self.password)
 
     def email_user(self, subject, message, from_email=None):
+        if not self.email:
+            raise ValueError("Account e-mail address not set.")
+        if not self.email_confirmed:
+            raise ValueError("Account e-mail address not confirmed.")
         mail.send_mail(subject, message, from_email, [self.email])
 
     def get_image_url(self):
@@ -136,17 +108,18 @@ class User(auth.User):
             return self.twitter_profile_data['profile_image_url']
 
         elif self.facebook_profile_data:
+            # TODO: Do we really need this utils/graph_api_url?
             return '%s?type=square' % utils.graph_api_url('%s/picture' % self.username)
 
         elif self.foursquare_profile_data and 'photo' in self.foursquare_profile_data:
             return self.foursquare_profile_data['photo']
-        
+
         elif self.google_profile_data and 'picture' in self.google_profile_data:
             return self.google_profile_data['picture']
 
         elif self.email:
-            request = client.RequestFactory(**settings.DEFAULT_REQUEST).request()
-            default_url = request.build_absolute_uri(staticfiles_storage.url(settings.DEFAULT_USER_IMAGE))
+            request = client.RequestFactory(**getattr(settings, 'DEFAULT_REQUEST', DEFAULT_REQUEST)).request()
+            default_url = request.build_absolute_uri(staticfiles_storage.url(getattr(settings, 'DEFAULT_USER_IMAGE', DEFAULT_USER_IMAGE)))
 
             return 'https://secure.gravatar.com/avatar/%(email_hash)s?%(args)s' % {
                 'email_hash': hashlib.md5(self.email.lower()).hexdigest(),
@@ -157,24 +130,17 @@ class User(auth.User):
             }
 
         else:
-            return staticfiles_storage.url(settings.DEFAULT_USER_IMAGE)
+            return staticfiles_storage.url(getattr(settings, 'DEFAULT_USER_IMAGE', DEFAULT_USER_IMAGE))
 
-    def get_user_channel(self):
-        """
-        User channel is a HTTP push channel dedicated to the user. We make it private by making
-        it unguessable and we cycle it regularly (every time user disconnects from all channels).
-        """
-
-        return "user/%s" % self.channel_id
- 
     @classmethod
-    def create_user(cls, username, email=None, password=None):
+    def create_user(cls, username, email=None, password=None, lazyuser=False):
         now = timezone.now()
         if not username:
             raise ValueError("The given username must be set")
         email = auth_models.UserManager.normalize_email(email)
         user = cls(
             username=username,
+            lazyuser_username=lazyuser,
             email=email or None,
             is_staff=False,
             is_active=True,
@@ -185,3 +151,68 @@ class User(auth.User):
         user.set_password(password)
         user.save()
         return user
+
+    def authenticate_facebook(self, request):
+        if self.lazyuser_username and self.facebook_profile_data.get('username'):
+            # TODO: Does Facebook have same restrictions on username content as we do?
+            self.username = self.facebook_profile_data.get('username')
+            self.lazyuser_username = False
+        if self.first_name is None:
+            self.first_name = self.facebook_profile_data.get('first_name') or None
+        if self.last_name is None:
+            self.last_name = self.facebook_profile_data.get('last_name') or None
+        if self.email is None:
+            # TODO: Do we know if all e-mail addresses given by Facebook are verified?
+            # TODO: Does not Facebook support multiple e-mail addresses? Which one is given here?
+            self.email = self.facebook_profile_data.get('email') or None
+
+    def authenticate_twitter(self, request):
+        if self.lazyuser_username and self.twitter_profile_data.get('screen_name'):
+            # TODO: Does Twitter have same restrictions on username content as we do?
+            self.username = self.twitter_profile_data.get('screen_name')
+            self.lazyuser_username = False
+        if self.first_name is None:
+            self.first_name = self.twitter_profile_data.get('name') or None
+
+    def authenticate_google(self, request):
+        username_guess = self.google_profile_data.get('email', '').rsplit('@', 1)[0]
+
+        if self.lazyuser_username and username_guess:
+            # Best username guess we can get from Google OAuth
+            self.username = username_guess
+            self.lazyuser_username = False
+        if self.first_name is None:
+            self.first_name = self.google_profile_data.get('given_name') or None
+        if self.last_name is None:
+            self.last_name = self.google_profile_data.get('family_name') or None
+        if self.email is None:
+            self.email = self.google_profile_data.get('email') or None
+            if self.google_profile_data.get('verified_email'):
+                self.email_confirmed = True
+
+    def authenticate_foursquare(self, request):
+        username_guess = self.foursquare_profile_data.get('contact', {}).get('email', '').rsplit('@', 1)[0]
+
+        if self.lazyuser_username and username_guess:
+            # Best username guess we can get from Foursquare
+            self.username = username_guess
+            self.lazyuser_username = False
+        if self.first_name is None:
+            self.first_name = self.foursquare_profile_data.get('firstName') or None
+        if self.last_name is None:
+            self.last_name = self.foursquare_profile_data.get('lastName') or None
+        if self.email is None:
+            self.email = self.foursquare_profile_data.get('contact', {}).get('email') or None
+
+    def authenticate_browserid(self, request):
+        if self.lazyuser_username:
+            # Best username guess we can get from BrowserID
+            self.username = self.browserid_profile_data['email'].rsplit('@', 1)[0]
+            self.lazyuser_username = False
+        if self.email is None:
+            self.email = self.browserid_profile_data['email'] or None
+            # BrowserID takes care of email confirmation
+            self.email_confirmed = True
+
+    def authenticate_lazyuser(self, request):
+        pass

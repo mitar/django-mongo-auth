@@ -1,7 +1,8 @@
 import json, urllib
 
 from django.conf import settings
-from django.utils import crypto, translation
+from django.core import exceptions
+from django.utils import crypto, importlib
 
 from mongoengine import queryset
 from mongoengine.django import auth
@@ -10,9 +11,28 @@ from django_browserid import auth as browserid_auth, base as browserid_base
 
 import tweepy
 
-from piplmesh.account import models
+from . import models
 
 LAZYUSER_USERNAME_TEMPLATE = 'guest-%s'
+USER_CLASS = 'mongo_socialauth.models.User'
+
+def get_class(path):
+    i = path.rfind('.')
+    module, attr = path[:i], path[i+1:]
+    try:
+        mod = importlib.import_module(module)
+    except ImportError, e:
+        raise exceptions.ImproperlyConfigured('Error importing user class module %s: "%s"' % (path, e))
+    except ValueError, e:
+        raise exceptions.ImproperlyConfigured('Error importing user class module. Is USER_CLASS a correctly defined class path?')
+    try:
+        cls = getattr(mod, attr)
+    except AttributeError:
+        raise exceptions.ImproperlyConfigured('Module "%s" does not define a "%s" user class' % (module, attr))
+
+    return cls
+
+User = get_class(getattr(settings, 'USER_CLASS', USER_CLASS))
 
 class MongoEngineBackend(auth.MongoEngineBackend):
     # TODO: Implement object permission support
@@ -37,13 +57,13 @@ class MongoEngineBackend(auth.MongoEngineBackend):
 
     @property
     def user_class(self):
-        return models.User
+        return User
 
 class FacebookBackend(MongoEngineBackend):
     """
     Facebook authentication.
     
-    Facebook uses strings 'male' and 'female' for respresenting user gender.
+    Facebook uses strings 'male' and 'female' for representing user gender.
     """
 
     # TODO: List all profile data fields we (can) get
@@ -65,21 +85,7 @@ class FacebookBackend(MongoEngineBackend):
         user.facebook_access_token = facebook_access_token
         user.facebook_profile_data = facebook_profile_data
 
-        if user.lazyuser_username and facebook_profile_data.get('username'):
-            # TODO: Does Facebook have same restrictions on username content as we do?
-            user.username = facebook_profile_data.get('username')
-            user.lazyuser_username = False
-        if user.first_name is None:
-            user.first_name = facebook_profile_data.get('first_name') or None
-        if user.last_name is None:
-            user.last_name = facebook_profile_data.get('last_name') or None
-        if user.email is None:
-            # TODO: Do we know if all e-mail addresses given by Facebook are verified?
-            # TODO: Does not Facebook support multiple e-mail addresses? Which one is given here?
-            user.email = facebook_profile_data.get('email') or None
-        if user.gender is None:
-            user.gender = facebook_profile_data.get('gender') or None
-
+        user.authenticate_facebook(request)
         user.save()
 
         return user
@@ -126,14 +132,23 @@ class TwitterBackend(MongoEngineBackend):
     """
 
     def authenticate(self, twitter_access_token, request):
-        twitter_auth = tweepy.OAuthHandler(settings.TWITTER_CONSUMER_KEY, settings.TWITTER_CONSUMER_SECRET)
+        TWITTER_CONSUMER_KEY = getattr(settings, 'TWITTER_CONSUMER_KEY', None)
+        TWITTER_CONSUMER_SECRET = getattr(settings, 'TWITTER_CONSUMER_SECRET', None)
+
+        if not TWITTER_CONSUMER_KEY or not TWITTER_CONSUMER_SECRET:
+            return None
+
+        twitter_auth = tweepy.OAuthHandler(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET)
         twitter_auth.set_access_token(twitter_access_token.key, twitter_access_token.secret)
         twitter_api = tweepy.API(twitter_auth)
 
         twitter_profile_data = twitter_api.me()
 
+        if 'id' not in twitter_profile_data:
+            return None
+
         try:
-            user = self.user_class.objects.get(twitter_profile_data__id=twitter_profile_data.get('id'))
+            user = self.user_class.objects.get(twitter_profile_data__id=twitter_profile_data['id'])
         except self.user_class.DoesNotExist:
             # TODO: Based on user preference, we might create a new user here, not just link with existing, if existing user is lazy user
             # We reload to make sure user object is recent
@@ -144,13 +159,7 @@ class TwitterBackend(MongoEngineBackend):
         user.twitter_access_token = models.TwitterAccessToken(key=twitter_access_token.key, secret=twitter_access_token.secret)
         user.twitter_profile_data = twitter_profile_data
 
-        if user.lazyuser_username and twitter_profile_data.get('screen_name'):
-            # TODO: Does Twitter have same restrictions on username content as we do?
-            user.username = twitter_profile_data.get('screen_name')
-            user.lazyuser_username = False
-        if user.first_name is None:
-            user.first_name = twitter_profile_data.get('name') or None
-
+        user.authenticate_twitter(request)
         user.save()
 
         return user
@@ -178,8 +187,11 @@ class GoogleBackend(MongoEngineBackend):
         # TODO: Handle error, what if request was denied?
         google_profile_data = json.load(urllib.urlopen('https://www.googleapis.com/oauth2/v1/userinfo?access_token=%s' % google_access_token))
 
+        if 'id' not in google_profile_data:
+            return None
+
         try:
-            user = self.user_class.objects.get(google_profile_data__id=google_profile_data.get('id'))
+            user = self.user_class.objects.get(google_profile_data__id=google_profile_data['id'])
         except self.user_class.DoesNotExist:
             # TODO: Based on user preference, we might create a new user here, not just link with existing, if existing user is lazy user
             # We reload to make sure user object is recent
@@ -189,25 +201,8 @@ class GoogleBackend(MongoEngineBackend):
 
         user.google_access_token = google_access_token
         user.google_profile_data = google_profile_data
-        
-        username_guess = google_profile_data.get('email', '').rsplit('@', 1)[0]
 
-        if user.lazyuser_username and username_guess:
-            # Best username guess we can get from Google OAuth
-            user.username = username_guess
-            user.lazyuser_username = False
-        if user.first_name is None:
-            user.first_name = google_profile_data.get('given_name') or None
-        if user.last_name is None:
-            user.last_name = google_profile_data.get('family_name') or None
-        if user.email is None:
-            user.email = google_profile_data.get('email') or None
-            if google_profile_data.get('verified_email'):
-                user.email_confirmed = True
-        if user.gender is None and google_profile_data.get('gender') != 'other':
-            # TODO: Does it really map so cleanly?
-            user.gender = google_profile_data.get('gender') or None
-
+        user.authenticate_google(request)
         user.save()
 
         return user
@@ -244,8 +239,11 @@ class FoursquareBackend(MongoEngineBackend):
         # TODO: Handle error, what if request was denied?
         foursquare_profile_data = json.load(urllib.urlopen('https://api.foursquare.com/v2/users/self?%s' % urllib.urlencode({'oauth_token': foursquare_access_token})))['response']['user']
 
+        if 'id' not in foursquare_profile_data:
+            return None
+
         try:
-            user = self.user_class.objects.get(foursquare_profile_data__id=foursquare_profile_data.get('id'))
+            user = self.user_class.objects.get(foursquare_profile_data__id=foursquare_profile_data['id'])
         except self.user_class.DoesNotExist:
             # TODO: Based on user preference, we might create a new user here, not just link with existing, if existing user is lazy user
             # We reload to make sure user object is recent
@@ -255,23 +253,8 @@ class FoursquareBackend(MongoEngineBackend):
 
         user.foursquare_access_token = foursquare_access_token
         user.foursquare_profile_data = foursquare_profile_data
-        
-        username_guess = foursquare_profile_data.get('contact', {}).get('email', '').rsplit('@', 1)[0]
 
-        if user.lazyuser_username and username_guess:
-            # Best username guess we can get from Foursquare
-            user.username = username_guess
-            user.lazyuser_username = False
-        if user.first_name is None:
-            user.first_name = foursquare_profile_data.get('firstName') or None
-        if user.last_name is None:
-            user.last_name = foursquare_profile_data.get('lastName') or None
-        if user.email is None:
-            user.email = foursquare_profile_data.get('contact', {}).get('email') or None
-        if user.gender is None:
-            # TODO: Does it really map so cleanly?
-            user.gender = foursquare_profile_data.get('gender') or None
-
+        user.authenticate_foursquare(request)
         user.save()
 
         return user
@@ -285,14 +268,12 @@ class BrowserIDBackend(MongoEngineBackend, browserid_auth.BrowserIDBackend):
     """
     
     def authenticate(self, browserid_assertion=None, browserid_audience=None, request=None):
-        result = browserid_base.verify(browserid_assertion, browserid_audience)
-        if not result:
+        browserid_profile_data = browserid_base.verify(browserid_assertion, browserid_audience)
+        if not browserid_profile_data or 'email' not in browserid_profile_data:
             return None
 
-        email = result['email']
-
         try:
-            user = self.user_class.objects.get(browserid_profile_data__email=email)
+            user = self.user_class.objects.get(browserid_profile_data__email=browserid_profile_data['email'])
             # TODO: What is we get more than one user?
         except self.user_class.DoesNotExist:
             # TODO: Based on user preference, we might create a new user here, not just link with existing, if existing user is lazy user
@@ -301,17 +282,9 @@ class BrowserIDBackend(MongoEngineBackend, browserid_auth.BrowserIDBackend):
             user = request.user
             # TODO: Is it OK to override BrowserID link if it already exist with some other BrowserID user?
         
-        user.browserid_profile_data = result
-        
-        if user.lazyuser_username:
-            # Best username guess we can get from BrowserID
-            user.username = email.rsplit('@', 1)[0]
-            user.lazyuser_username = False
-        if user.email is None:
-            user.email = email or None
-            # BrowserID takes care of email confirmation
-            user.email_confirmed = True
+        user.browserid_profile_data = browserid_profile_data
 
+        user.authenticate_browserid(request)
         user.save()
 
         return user
@@ -321,10 +294,11 @@ class LazyUserBackend(MongoEngineBackend):
         while True:
             try:
                 username = LAZYUSER_USERNAME_TEMPLATE % crypto.get_random_string(6)
-                user = self.user_class.objects.create(
-                    username=username,
-                    language=translation.get_language_from_request(request),
-                )
+                user = self.user_class.create_user(username=username, lazyuser=True)
+
+                user.authenticate_lazyuser(request)
+                user.save()
+
                 break
             except queryset.OperationError, e:
                 msg = str(e)

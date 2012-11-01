@@ -7,18 +7,16 @@ from django.contrib.auth import signals as auth_signals, views as auth_views
 from django.core import urlresolvers
 from django.template import loader
 from django.views import generic as generic_views
-from django.views.generic import simple, edit as edit_views
-from django.utils import crypto, timezone, translation
+from django.views.generic import edit as edit_views
+from django.utils import crypto
 from django.utils.translation import ugettext_lazy as _
-
-from pushserver import signals
 
 import tweepy
 
-from piplmesh.account import forms, models
-
 import django_browserid
 from django_browserid import views as browserid_views
+
+from . import backends, forms, models
 
 FACEBOOK_SCOPE = 'email'
 GOOGLE_SCOPE = 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
@@ -45,7 +43,7 @@ class FacebookCallbackView(generic_views.RedirectView):
 
     permanent = False
     # TODO: Redirect users to the page they initially came from
-    url = settings.FACEBOOK_LOGIN_REDIRECT
+    url = settings.LOGIN_REDIRECT_URL
 
     def get(self, request, *args, **kwargs):
         # TODO: Add security measures to prevent attackers from sending a redirect to this url with a forged 'code' (you can use 'state' parameter to set a random nonce and store it into session)
@@ -98,7 +96,7 @@ class TwitterCallbackView(generic_views.RedirectView):
 
     permanent = False
     # TODO: Redirect users to the page they initially came from
-    url = settings.TWITTER_LOGIN_REDIRECT
+    url = settings.LOGIN_REDIRECT_URL
 
     def get(self, request, *args, **kwargs):
         if 'oauth_verifier' in request.GET:
@@ -145,7 +143,7 @@ class GoogleCallbackView(generic_views.RedirectView):
 
     permanent = False
     # TODO: Redirect users to the page they initially came from
-    url = settings.GOOGLE_LOGIN_REDIRECT
+    url = settings.LOGIN_REDIRECT_URL
 
     def get(self, request, *args, **kwargs):
         # TODO: Add security measures to prevent attackers from sending a redirect to this url with a forged 'code' (you can use 'state' parameter to set a random nonce and store it into session)
@@ -196,7 +194,7 @@ class FoursquareCallbackView(generic_views.RedirectView):
 
     permanent = False
     # TODO: Redirect users to the page they initially came from
-    url = settings.FOURSQUARE_LOGIN_REDIRECT
+    url = settings.LOGIN_REDIRECT_URL
 
     def get(self, request, *args, **kwargs):
         if 'code' in request.GET:
@@ -250,20 +248,24 @@ class RegistrationView(edit_views.FormView):
     New user is authenticated, logged in and redirected to home page.
     """
 
-    template_name = 'user/registration.html'
+    template_name = 'mongo_socialauth/registration.html'
     # TODO: Redirect users to the page they initially came from
     success_url = urlresolvers.reverse_lazy('home')
     form_class = forms.RegistrationForm
 
+    def object_data(self, form):
+        return {
+            'username': form.cleaned_data['username'],
+            'first_name': form.cleaned_data['first_name'],
+            'last_name': form.cleaned_data['last_name'],
+            'email': form.cleaned_data['email'],
+        }
+
+    def get_user_class(self):
+        return backends.User
+
     def form_valid(self, form):
-        new_user = models.User(
-            username = form.cleaned_data['username'],
-            first_name = form.cleaned_data['first_name'],
-            last_name = form.cleaned_data['last_name'],
-            email = form.cleaned_data['email'],
-            gender = form.cleaned_data['gender'],
-            birthdate = form.cleaned_data['birthdate'],
-        )
+        new_user = self.get_user_class()(**self.object_data(form))
         new_user.set_password(form.cleaned_data['password2'])
         new_user.save()
         # We update user with authentication data
@@ -276,7 +278,7 @@ class RegistrationView(edit_views.FormView):
     def dispatch(self, request, *args, **kwargs):
         # TODO: Is this really the correct check? What is user is logged through third-party authentication, but still wants to register with us?
         if request.user.is_authenticated():
-            return simple.redirect_to(request, url=self.get_success_url(), permanent=False)
+            return http.HttpResponseRedirect(self.get_success_url())
         return super(RegistrationView, self).dispatch(request, *args, **kwargs)
 
 class AccountChangeView(edit_views.FormView):
@@ -284,7 +286,7 @@ class AccountChangeView(edit_views.FormView):
     This view displays form for updating user account. It checks if all fields are valid and updates it.
     """
 
-    template_name = 'user/account.html'
+    template_name = 'mongo_socialauth/account.html'
     form_class = forms.AccountChangeForm
     success_url = urlresolvers.reverse_lazy('account')
 
@@ -295,8 +297,6 @@ class AccountChangeView(edit_views.FormView):
         if user.email != form.cleaned_data['email']:
             user.email_confirmed = False
             user.email = form.cleaned_data['email']
-        user.gender = form.cleaned_data['gender']
-        user.birthdate = form.cleaned_data['birthdate']
         user.save()
         messages.success(self.request, _("Your account has been successfully updated."))
         return super(AccountChangeView, self).form_valid(form)
@@ -315,8 +315,6 @@ class AccountChangeView(edit_views.FormView):
             'first_name': self.request.user.first_name,
             'last_name': self.request.user.last_name,
             'email': self.request.user.email,
-            'gender': self.request.user.gender,
-            'birthdate': self.request.user.birthdate,
         }
 
 class PasswordChangeView(edit_views.FormView):
@@ -324,7 +322,7 @@ class PasswordChangeView(edit_views.FormView):
     This view displays form for changing password.
     """
 
-    template_name = 'user/password_change.html'
+    template_name = 'mongo_socialauth/password_change.html'
     form_class = forms.PasswordChangeForm
     success_url = urlresolvers.reverse_lazy('account')
 
@@ -343,7 +341,7 @@ class PasswordChangeView(edit_views.FormView):
         return form_class(self.request.user, **self.get_form_kwargs())
 
 class EmailConfirmationSendToken(edit_views.FormView):
-    template_name = 'user/email_confirmation_send_token.html'
+    template_name = 'mongo_socialauth/email_confirmation_send_token.html'
     form_class = forms.EmailConfirmationSendTokenForm
     success_url = urlresolvers.reverse_lazy('account')
 
@@ -354,17 +352,17 @@ class EmailConfirmationSendToken(edit_views.FormView):
         context = {
             'CONFIRMATION_TOKEN_VALIDITY': models.CONFIRMATION_TOKEN_VALIDITY,
             'EMAIL_SUBJECT_PREFIX': settings.EMAIL_SUBJECT_PREFIX,
-            'SITE_NAME': settings.SITE_NAME,
+            'SITE_NAME': getattr(settings, 'SITE_NAME', None),
             'confirmation_token': confirmation_token,
             'email_address': user.email,
             'request': self.request,
             'user': user,
         }
 
-        subject = loader.render_to_string('user/confirmation_email_subject.txt', context)
+        subject = loader.render_to_string('mongo_socialauth/confirmation_email_subject.txt', context)
         # Email subject *must not* contain newlines
         subject = ''.join(subject.splitlines())
-        email = loader.render_to_string('user/confirmation_email.txt', context)
+        email = loader.render_to_string('mongo_socialauth/confirmation_email.txt', context)
 
         user.email_confirmation_token = models.EmailConfirmationToken(value=confirmation_token)
         user.save()
@@ -378,7 +376,7 @@ class EmailConfirmationSendToken(edit_views.FormView):
         return super(EmailConfirmationSendToken, self).dispatch(request, *args, **kwargs)
 
 class EmailConfirmationProcessToken(generic_views.FormView):
-    template_name = 'user/email_confirmation_process_token.html'
+    template_name = 'mongo_socialauth/email_confirmation_process_token.html'
     form_class = forms.EmailConfirmationProcessTokenForm
     success_url = urlresolvers.reverse_lazy('account')
 
@@ -412,57 +410,6 @@ def logout(request):
 
     url = request.POST.get(auth.REDIRECT_FIELD_NAME)
     return auth_views.logout_then_login(request, url)
-
-def set_language(request):
-    """
-    Redirect to a given url while setting the chosen language in the user
-    setting. The url and the language code need to be specified in the request
-    parameters.
-
-    Since this view changes how the user will see the rest of the site, it must
-    only be accessed as a POST request. If called as a GET request, it will
-    redirect to the page in the request (the 'next' parameter) without changing
-    any state.
-    """
-
-    next = request.REQUEST.get('next', None)
-    if not next:
-        next = request.META.get('HTTP_REFERER', None)
-    if not next:
-        next = '/'
-    response = http.HttpResponseRedirect(next)
-    if request.method == 'POST':
-        lang_code = request.POST.get('language', None)
-        if lang_code and translation.check_for_language(lang_code):
-            # We reload to make sure user object is recent
-            request.user.reload()
-            request.user.language = lang_code
-            request.user.save()
-    return response
-
-@dispatch.receiver(signals.channel_subscribe)
-def process_channel_subscribe(sender, request, channel_id, **kwargs):
-    request.user.update(
-        push__connections={
-            'http_if_none_match': request.META['HTTP_IF_NONE_MATCH'],
-            'http_if_modified_since': request.META['HTTP_IF_MODIFIED_SINCE'],
-            'channel_id': channel_id,
-        }
-    )
-
-@dispatch.receiver(signals.channel_unsubscribe)
-def process_channel_unsubscribe(sender, request, channel_id, **kwargs):
-    models.User.objects(
-        id=request.user.id,
-        connections__http_if_none_match=request.META['HTTP_IF_NONE_MATCH'],
-        connections__http_if_modified_since=request.META['HTTP_IF_MODIFIED_SINCE'],
-        connections__channel_id=channel_id,
-    ).update_one(unset__connections__S=1)
-
-    request.user.update(
-        pull__connections=None,
-        set__connection_last_unsubscribe=timezone.now(),
-    )
 
 @dispatch.receiver(auth_signals.user_logged_in)
 def user_login_message(sender, request, user, **kwargs):

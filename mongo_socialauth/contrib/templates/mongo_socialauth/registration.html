@@ -1,0 +1,15 @@
+{% extends "mongo_socialauth/base.html" %}
+
+{% load future i18n %}
+
+{% block title %}{% trans "Registration" %}{% endblock %}
+
+{% block content %}
+    <div class="account registration">
+        <h1>{% trans "Registration" %}</h1>
+        {% with form_submit=_("Register") %}
+            {% url "registration" as form_action %}
+            {% include "mongo_socialauth/form.html" %}
+        {% endwith %}
+    </div>
+{% endblock %}

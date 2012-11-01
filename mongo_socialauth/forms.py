@@ -1,8 +1,7 @@
 from django import forms
-from django.forms.extras import widgets
 from django.utils.translation import ugettext_lazy as _
 
-from piplmesh.account import fields, form_fields, models
+from . import backends, models
 
 class UserUsernameForm(forms.Form):
     """
@@ -26,7 +25,7 @@ class UserUsernameForm(forms.Form):
         """
 
         username = self.cleaned_data['username']
-        if models.User.objects(username__iexact=username).count():
+        if backends.User.objects(username__iexact=username).count():
             raise forms.ValidationError(_("A user with that username already exists."), code='username_exists')
         return username
 
@@ -87,44 +86,16 @@ class UserBasicInfoForm(forms.Form):
     Class with user basic information form.
     """
 
-    # TODO: Language field is missing?
-
     first_name = forms.CharField(label=_("First name"))
     last_name = forms.CharField(label=_("Last name"))
     email = forms.EmailField(label=_("E-mail"))
-    gender = forms.ChoiceField(
-        label=_("Gender"),
-        choices=fields.GENDER_CHOICES,
-        widget=forms.RadioSelect(),
-        required=False,
-    )
-    birthdate = form_fields.LimitedDateTimeField(
-        upper_limit=models.upper_birthdate_limit,
-        lower_limit=models.lower_birthdate_limit,
-        label=_("Birth date"),
-        required=False,
-        widget=widgets.SelectDateWidget(
-            years=[
-                y for y in range(
-                    models.upper_birthdate_limit().year,
-                    models.lower_birthdate_limit().year,
-                    -1,
-                )
-            ],
-        ),
-    )
-
-class UserAdditionalInfoForm(forms.Form):
-    """
-    Class with user additional information form.
-    """
 
 class RegistrationForm(UserUsernameForm, UserPasswordForm, UserBasicInfoForm):
     """
     Class with registration form.
     """
 
-class AccountChangeForm(UserBasicInfoForm, UserAdditionalInfoForm, UserCurrentPasswordForm):
+class AccountChangeForm(UserBasicInfoForm, UserCurrentPasswordForm):
     """
     Class with form for changing your account settings.
     """

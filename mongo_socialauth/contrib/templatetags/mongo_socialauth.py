@@ -2,7 +2,7 @@ from django import template
 
 register = template.Library()
 
-@register.inclusion_tag('user/user_image.html', takes_context=True)
+@register.inclusion_tag('mongo_socialauth/user_image.html', takes_context=True)
 def user_image(context, user=None):
     if not user:
         user = context.get('user')
