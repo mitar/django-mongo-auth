@@ -28,7 +28,7 @@ def get_class(path):
     try:
         cls = getattr(mod, attr)
     except AttributeError:
-        raise exceptions.ImproperlyConfigured('Module "%s" does not define a "%s" user class' % (module, attr))
+        raise exceptions.ImproperlyConfigured('Module "%s" does not define user class "%s"' % (module, attr))
 
     return cls
 
