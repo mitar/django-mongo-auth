@@ -96,10 +96,10 @@ class User(auth.User):
     def has_usable_password(self):
         return hashers.is_password_usable(self.password)
 
-    def email_user(self, subject, message, from_email=None):
+    def email_user(self, subject, message, from_email=None, allow_unconfirmed=False):
         if not self.email:
             raise ValueError("Account e-mail address not set.")
-        if not self.email_confirmed:
+        if not allow_unconfirmed and not self.email_confirmed:
             raise ValueError("Account e-mail address not confirmed.")
         mail.send_mail(subject, message, from_email, [self.email])
 

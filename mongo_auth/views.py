@@ -366,7 +366,7 @@ class EmailConfirmationSendToken(edit_views.FormView):
 
         user.email_confirmation_token = models.EmailConfirmationToken(value=confirmation_token)
         user.save()
-        user.email_user(subject, email)
+        user.email_user(subject, email, allow_unconfirmed=True)
 
         messages.success(self.request, _("Confirmation e-mail has been sent to your e-mail address."))
         return super(EmailConfirmationSendToken, self).form_valid(form)
