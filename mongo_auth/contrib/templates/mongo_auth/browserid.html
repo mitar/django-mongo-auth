@@ -7,6 +7,6 @@
     <form method="post" action="{% url "browserid_verify" %}">
         {% csrf_token %}
         <div id="browserid_submit">{{ browserid_form.as_p }}</div>
-        <p><button type="submit" id="browserid" class="browserid-signin" title="{% trans "Sign in with Persona" %}"><span class="browserid_button_text">{% trans "Sign in with Persona" %}</span></button></p>
+        <p><button type="submit" id="browserid" class="browserid-signin" title="{% trans "Login with Persona" %}"><span class="browserid_button_text">{% trans "Login with Persona" %}</span></button></p>
     </form>
 </div>

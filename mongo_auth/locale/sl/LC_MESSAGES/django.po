@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: django-mongo-admin\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-11-03 01:45-0700\n"
+"POT-Creation-Date: 2012-11-03 15:14-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Martin Jakomin <martin.jakomin@gmail.com>\n"
 "Language-Team: \n"
@@ -145,7 +145,7 @@ msgid "Birth date"
 msgstr "Datum rojstva"
 
 #: contrib/templates/mongo_auth/browserid.html:10
-msgid "Sign in with Persona"
+msgid "Login with Persona"
 msgstr "Persona prijava"
 
 #: contrib/templates/mongo_auth/confirmation_email.txt:1
@@ -157,7 +157,7 @@ msgstr "Pozdravljen/a %(username)s!"
 #, python-format
 msgid ""
 "This message was sent to you to confirm this e-mail address (%(email)s) as "
-"yours for your account on %(SITE_NAME)s with username \"%(username)s\". If "
+"yours for the account on %(SITE_NAME)s with username \"%(username)s\". If "
 "you have already done so or don't want to, you can safely ignore this e-mail."
 msgstr ""
 "To sporočilo ti je bilo poslano, da potrdiš ta e-mail naslov (%(email)s) kot "
@@ -165,15 +165,15 @@ msgstr ""
 "to že storil/a ali pa tega nočeš, lahko brez skrbi ignoriraš ta e-mail."
 
 #: contrib/templates/mongo_auth/confirmation_email.txt:3
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "This message was sent to you to confirm this e-mail address (%(email)s) as "
-"yours for your account with username \"%(username)s\". If you have already "
+"yours for the account with username \"%(username)s\". If you have already "
 "done so or don't want to, you can safely ignore this e-mail."
 msgstr ""
 "To sporočilo ti je bilo poslano, da potrdiš ta e-mail naslov (%(email)s) kot "
-"svojega za %(SITE_NAME)s račun z uporabniškim imenom \"%(username)s\". Če si "
-"to že storil/a ali pa tega nočeš, lahko brez skrbi ignoriraš ta e-mail."
+"svojega za račun z uporabniškim imenom \"%(username)s\". Če si to že storil/"
+"a ali pa tega nočeš, lahko brez skrbi ignoriraš ta e-mail."
 
 #: contrib/templates/mongo_auth/confirmation_email.txt:5
 msgid "Please click the link below to confirm your e-mail address:"
@@ -265,9 +265,8 @@ msgid "Submit"
 msgstr "Pošlji"
 
 #: contrib/templates/mongo_auth/base/account.html:14
-#, fuzzy
 msgid "Change your password"
-msgstr "Spremeni geslo"
+msgstr "Spremeni svoje geslo"
 
 #: contrib/templates/mongo_auth/base/account.html:16
 msgid "Please confirm your e-mail address"
@@ -318,7 +317,6 @@ msgstr "Prijavi se"
 
 #: contrib/templates/mongo_auth/base/login.html:16
 #: contrib/templates/mongo_auth/base/registration.html:10
-#, fuzzy
 msgid "Register"
 msgstr "Registracija"
 
