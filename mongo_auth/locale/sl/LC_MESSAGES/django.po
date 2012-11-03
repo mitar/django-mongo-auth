@@ -1,0 +1,333 @@
+# PiplMesh Slovenian translation
+# Copyright (C) 2012 wlan slovenija, open wireless network of Slovenia
+# This file is distributed under the same license as django-mongo-auth.
+# Aljaz Prijatelj <aljaz.prijatelj@gmail.com>, 2012.
+msgid ""
+msgstr ""
+"Project-Id-Version: django-mongo-admin\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2012-11-03 01:45-0700\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Martin Jakomin <martin.jakomin@gmail.com>\n"
+"Language-Team: \n"
+"Language: sl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n"
+"%100==4 ? 2 : 3)\n"
+
+#: forms.py:12
+msgid "Username"
+msgstr "Uporabniško ime"
+
+#: forms.py:16 models.py:49
+msgid ""
+"Minimal of 4 characters and maximum of 30. Letters, digits and @/./+/-/_ "
+"only."
+msgstr "Najmanj 4 in največ 30 znakov. Samo črke, številke in @/./+/-/_ ."
+
+#: forms.py:18
+msgid "This value may contain only letters, numbers and @/./+/-/_ characters."
+msgstr "To polje lahko vsebuje le črke, številke in znake @/./+/-/_ ."
+
+#: forms.py:29
+msgid "A user with that username already exists."
+msgstr "Uporabnik s tem uporabniškim imenom že obstaja."
+
+#: forms.py:38
+msgid "Password"
+msgstr "Geslo"
+
+#: forms.py:43
+msgid "Password (repeat)"
+msgstr "Geslo (ponovi)"
+
+#: forms.py:45
+msgid "Enter the same password as above, for verification."
+msgstr "V izogib napakam ponovno vnesi isto geslo kot zgoraj."
+
+#: forms.py:56
+msgid "The two password fields did not match."
+msgstr "Gesli se ne ujemata."
+
+#: forms.py:65
+msgid "Current password"
+msgstr "Trenutno geslo"
+
+#: forms.py:67
+msgid "Enter your current password, for verification."
+msgstr "Za potrditev vnesi trenutno geslo."
+
+#: forms.py:81
+msgid "Your current password was incorrect."
+msgstr "Vnešeno geslo je bilo nepravilno."
+
+#: forms.py:89
+msgid "First name"
+msgstr "Ime"
+
+#: forms.py:90
+msgid "Last name"
+msgstr "Priimek"
+
+#: forms.py:91
+msgid "E-mail"
+msgstr "E-mail"
+
+#: forms.py:119
+msgid "Confirmation token"
+msgstr "Potrditvena koda"
+
+#: forms.py:123
+msgid ""
+"Please enter the confirmation token you received to your e-mail address."
+msgstr "Prosimo vnesi potrditveno kodo, ki si jo prejel na svoj e-mail naslov."
+
+#: forms.py:137
+msgid "The confirmation token is invalid or has expired. Please retry."
+msgstr "Potrditvena koda je napačna ali pa je potekla. Prosimo, poskusi znova."
+
+#: models.py:48
+msgid "username"
+msgstr "uporabniško ime"
+
+#: views.py:275
+msgid "Registration has been successful."
+msgstr "Registracija je bila uspešna."
+
+#: views.py:301
+msgid "Your account has been successfully updated."
+msgstr "Tvoj račun je bil uspešno posodobljen."
+
+#: views.py:331
+msgid "Your password has been successfully changed."
+msgstr "Tvoje geslo je bilo uspešno posodobljeno."
+
+#: views.py:371
+msgid "Confirmation e-mail has been sent to your e-mail address."
+msgstr "Potrditveni e-mail je bil poslan na tvoj e-mail naslov."
+
+#: views.py:387
+msgid "You have successfully confirmed your e-mail address."
+msgstr "Uspešno si potrdil svoj e-mail naslov."
+
+#: views.py:421
+msgid "You have been successfully logged in."
+msgstr "Prijava uspešna."
+
+#: views.py:430
+msgid "You have been successfully logged out."
+msgstr "Odjava uspešna."
+
+#: contrib/fields.py:11
+msgid "male"
+msgstr "moški"
+
+#: contrib/fields.py:12
+msgid "female"
+msgstr "ženska"
+
+#: contrib/fields.py:16
+msgid "Value is out of bounds."
+msgstr "Vrednost je izven meja."
+
+#: contrib/fields.py:17
+msgid "Callable did not return datetime.date or datetime.datetime object."
+msgstr ""
+
+#: contrib/forms.py:16
+msgid "Gender"
+msgstr "Spol"
+
+#: contrib/forms.py:24
+msgid "Birth date"
+msgstr "Datum rojstva"
+
+#: contrib/templates/mongo_auth/browserid.html:10
+msgid "Sign in with Persona"
+msgstr "Persona prijava"
+
+#: contrib/templates/mongo_auth/confirmation_email.txt:1
+#, python-format
+msgid "Hello %(username)s!"
+msgstr "Pozdravljen/a %(username)s!"
+
+#: contrib/templates/mongo_auth/confirmation_email.txt:3
+#, python-format
+msgid ""
+"This message was sent to you to confirm this e-mail address (%(email)s) as "
+"yours for your account on %(SITE_NAME)s with username \"%(username)s\". If "
+"you have already done so or don't want to, you can safely ignore this e-mail."
+msgstr ""
+"To sporočilo ti je bilo poslano, da potrdiš ta e-mail naslov (%(email)s) kot "
+"svojega za %(SITE_NAME)s račun z uporabniškim imenom \"%(username)s\". Če si "
+"to že storil/a ali pa tega nočeš, lahko brez skrbi ignoriraš ta e-mail."
+
+#: contrib/templates/mongo_auth/confirmation_email.txt:3
+#, fuzzy, python-format
+msgid ""
+"This message was sent to you to confirm this e-mail address (%(email)s) as "
+"yours for your account with username \"%(username)s\". If you have already "
+"done so or don't want to, you can safely ignore this e-mail."
+msgstr ""
+"To sporočilo ti je bilo poslano, da potrdiš ta e-mail naslov (%(email)s) kot "
+"svojega za %(SITE_NAME)s račun z uporabniškim imenom \"%(username)s\". Če si "
+"to že storil/a ali pa tega nočeš, lahko brez skrbi ignoriraš ta e-mail."
+
+#: contrib/templates/mongo_auth/confirmation_email.txt:5
+msgid "Please click the link below to confirm your e-mail address:"
+msgstr "Klikni spodnjo povezavo za potrditev svojega e-mail naslova:"
+
+#: contrib/templates/mongo_auth/confirmation_email.txt:9
+msgid "Or, open the following link:"
+msgstr "Ali pa odpri naslednjo povezavo:"
+
+#: contrib/templates/mongo_auth/confirmation_email.txt:13
+msgid ""
+"and copy-paste the following confirmation token into the input box there:"
+msgstr "in prilepi sledečo podtrditveno kodo v vnosno polje tam:"
+
+#: contrib/templates/mongo_auth/confirmation_email.txt:17
+#, python-format
+msgid ""
+"Confirmation token will be active for %(CONFIRMATION_TOKEN_VALIDITY)s day."
+msgid_plural ""
+"Confirmation token will be active for %(CONFIRMATION_TOKEN_VALIDITY)s days."
+msgstr[0] "Potrditvena koda bo veljavna %(CONFIRMATION_TOKEN_VALIDITY)s dan."
+msgstr[1] "Potrditvena koda bo veljavna %(CONFIRMATION_TOKEN_VALIDITY)s dneva."
+msgstr[2] "Potrditvena koda bo veljavna %(CONFIRMATION_TOKEN_VALIDITY)s dni."
+msgstr[3] "Potrditvena koda bo veljavna %(CONFIRMATION_TOKEN_VALIDITY)s dni."
+
+#: contrib/templates/mongo_auth/confirmation_email.txt:17
+msgid ""
+" If it expires you will have to redo the process of confirming your e-mail "
+"address."
+msgstr ""
+"Če bo potekla, boš moral/a ponovno čez postopek potrditve svojega e-mail "
+"naslova."
+
+#: contrib/templates/mongo_auth/confirmation_email.txt:19
+msgid ""
+"Please also be careful to open complete link. Your e-mail client might have "
+"broken it into several lines."
+msgstr ""
+"Prosimo bodi previden/a, da odpreš celotno povezavo. Tvoj e-mail odjemalec "
+"jo je morda razdelil v več vrstic."
+
+#: contrib/templates/mongo_auth/confirmation_email.txt:21
+msgid ""
+"If you have any problems confirming your e-mail address or have any other "
+"questions just reply to this e-mail."
+msgstr ""
+"Če imaš karšnekoli težave pri potrjevanju svojega e-mail naslova ali kakšna "
+"druga vprašanja, lahko odgovoriš kar na ta e-mail."
+
+#: contrib/templates/mongo_auth/confirmation_email.txt:23
+msgid "Yours,"
+msgstr "Tvoj,"
+
+#: contrib/templates/mongo_auth/confirmation_email_subject.txt:1
+#: contrib/templates/mongo_auth/base/email_confirmation_process_token.html:5
+#: contrib/templates/mongo_auth/base/email_confirmation_process_token.html:9
+#: contrib/templates/mongo_auth/base/email_confirmation_process_token.html:13
+msgid "Confirm your e-mail address"
+msgstr "Potrdi svoj e-mail naslov"
+
+#: contrib/templates/mongo_auth/other_login_options.html:6
+msgid "Login with Facebook"
+msgstr "Facebook prijava"
+
+#: contrib/templates/mongo_auth/other_login_options.html:12
+msgid "Login with Twitter"
+msgstr "Twitter prijava"
+
+#: contrib/templates/mongo_auth/other_login_options.html:18
+msgid "Login with Foursquare"
+msgstr "Foursquare prijava"
+
+#: contrib/templates/mongo_auth/other_login_options.html:24
+msgid "Login with Google"
+msgstr "Google prijava"
+
+#: contrib/templates/mongo_auth/user_image.html:3
+msgid "User image"
+msgstr "Slika uporabnika"
+
+#: contrib/templates/mongo_auth/base/account.html:5
+#: contrib/templates/mongo_auth/base/account.html:9
+msgid "Account"
+msgstr "Račun"
+
+#: contrib/templates/mongo_auth/base/account.html:10
+#: contrib/templates/mongo_auth/base/password_change.html:10
+msgid "Submit"
+msgstr "Pošlji"
+
+#: contrib/templates/mongo_auth/base/account.html:14
+#, fuzzy
+msgid "Change your password"
+msgstr "Spremeni geslo"
+
+#: contrib/templates/mongo_auth/base/account.html:16
+msgid "Please confirm your e-mail address"
+msgstr "Prosimo, potrdi svoj e-mail naslov"
+
+#: contrib/templates/mongo_auth/base/email_confirmation_process_token.html:11
+msgid ""
+"You are just one step away from confirming your e-mail address. If for some "
+"reason the input box below is empty, paste the token in manually from the "
+"confirmation e-mail you have received."
+msgstr ""
+"Si samo še korak od potrditve svojega e-mail naslova. Če je spodnje vnosno "
+"polje slučajno prazno, ročno prilepi kodo, ki si jo prejel/a."
+
+#: contrib/templates/mongo_auth/base/email_confirmation_send_token.html:5
+#: contrib/templates/mongo_auth/base/email_confirmation_send_token.html:9
+msgid "E-mail address confirmation"
+msgstr "Potrditev e-mail naslova"
+
+#: contrib/templates/mongo_auth/base/email_confirmation_send_token.html:11
+#, python-format
+msgid "Clicking the button below will send a confirmation mail to %(email)s."
+msgstr "Klik na spodnji gumb bo poslal potrditveno povezavo na %(email)s."
+
+#: contrib/templates/mongo_auth/base/email_confirmation_send_token.html:13
+msgid "Click here to confirm your e-mail address"
+msgstr "Klikni tukaj za potrditev svojega e-mail naslova"
+
+#: contrib/templates/mongo_auth/base/email_confirmation_send_token.html:17
+msgid "Why should I confirm my e-mail address?"
+msgstr "Zakaj bi potrdil svoj e-mail naslov?"
+
+#: contrib/templates/mongo_auth/base/email_confirmation_send_token.html:19
+msgid ""
+"Confirming your e-mail address improves the security of your account. Once "
+"you've confirmed your e-mail address, you will be able to reset your "
+"password in the case you lost it or forget it."
+msgstr ""
+"Potrditev svojega e-mail naslova poveča varnost tvojega računa. Ko boš "
+"potrdil svoj e-mail naslov, boš lahko resetiral/a svoje geslo v primeru, da "
+"si ga pozabil/a ali izgubil/a."
+
+#: contrib/templates/mongo_auth/base/login.html:5
+#: contrib/templates/mongo_auth/base/login.html:9
+#: contrib/templates/mongo_auth/base/login.html:12
+msgid "Login"
+msgstr "Prijavi se"
+
+#: contrib/templates/mongo_auth/base/login.html:16
+#: contrib/templates/mongo_auth/base/registration.html:10
+#, fuzzy
+msgid "Register"
+msgstr "Registracija"
+
+#: contrib/templates/mongo_auth/base/password_change.html:5
+#: contrib/templates/mongo_auth/base/password_change.html:9
+msgid "Change Password"
+msgstr "Spremeni geslo"
+
+#: contrib/templates/mongo_auth/base/registration.html:5
+#: contrib/templates/mongo_auth/base/registration.html:9
+msgid "Registration"
+msgstr "Registracija"
