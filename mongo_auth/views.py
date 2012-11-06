@@ -7,9 +7,12 @@ from django.contrib.auth import signals as auth_signals, views as auth_views
 from django.core import urlresolvers
 from django.template import loader
 from django.views import generic as generic_views
+from django.views.decorators import cache, csrf, debug
 from django.views.generic import edit as edit_views
-from django.utils import crypto
+from django.utils import crypto, http as http_utils
 from django.utils.translation import ugettext_lazy as _
+
+import bson
 
 import tweepy
 
@@ -410,6 +413,37 @@ def logout(request):
 
     url = request.POST.get(auth.REDIRECT_FIELD_NAME)
     return auth_views.logout_then_login(request, url)
+
+@csrf.csrf_protect
+def password_reset(request, post_reset_redirect=None, *args, **kwargs):
+    if post_reset_redirect is None:
+        post_reset_redirect = urlresolvers.reverse('password_reset')
+    return auth_views.password_reset(request, post_reset_redirect=post_reset_redirect, *args, **kwargs)
+
+@debug.sensitive_post_parameters()
+@cache.never_cache
+def password_reset_confirm(request, *args, **kwargs):
+    old_base36_to_int = http_utils.base36_to_int
+    old_user = auth_views.User
+
+    def base36_to_objectid(s):
+        if 13 < len(s) <= 26:
+            return bson.ObjectId(hex(int(s, 36))[2:-1])
+        else:
+            return old_base36_to_int(s)
+
+    http.base36_to_int = base36_to_objectid
+    auth_views.base36_to_int = base36_to_objectid
+    auth_views.User = backends.User
+    try:
+        result = auth_views.password_reset_confirm(request, *args, **kwargs)
+        if isinstance(result, http.HttpResponseRedirect):
+            messages.success(request, _("Your password has been set. You may go ahead and login now."))
+        return result
+    finally:
+        http.base36_to_int = old_base36_to_int
+        auth_views.base36_to_int = old_base36_to_int
+        auth_views.User = old_user
 
 @dispatch.receiver(auth_signals.user_logged_in)
 def user_login_message(sender, request, user, **kwargs):

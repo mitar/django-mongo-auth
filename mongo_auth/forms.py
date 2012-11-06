@@ -1,5 +1,15 @@
+import sys
+
 from django import forms
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth import forms as auth_forms, hashers, tokens
+from django.contrib.sites import models as sites_models
+from django.template import loader
+from django.utils import http
 from django.utils.translation import ugettext_lazy as _
+
+import bson
 
 from . import backends, models
 
@@ -136,3 +146,54 @@ class EmailConfirmationProcessTokenForm(forms.Form):
         if not self.user.email_confirmation_token.check_token(confirmation_token):
             raise forms.ValidationError(_("The confirmation token is invalid or has expired. Please retry."), code='confirmation_token_incorrect')
         return confirmation_token
+
+def objectid_to_base36(i):
+    assert isinstance(i, bson.ObjectId), type(i)
+    old_maxint = sys.maxint
+    sys.maxint = old_maxint**2
+    try:
+        return http.int_to_base36(int(str(i), 16))
+    finally:
+        sys.maxint = old_maxint
+
+class PasswordResetForm(auth_forms.PasswordResetForm):
+    def clean_email(self):
+        email = self.cleaned_data["email"]
+        self.users_cache = backends.User.objects.filter(email__iexact=email, is_active=True)
+        if not len(self.users_cache):
+            raise forms.ValidationError(self.error_messages['unknown'])
+        # We use "all" instead of "any" and skip all users with unusable passwords in save
+        if all((user.password == hashers.UNUSABLE_PASSWORD) for user in self.users_cache):
+            raise forms.ValidationError(self.error_messages['unusable'])
+        return email
+
+    def save(self, domain_override=None, subject_template_name='mongo_auth/password_reset_subject.txt', email_template_name='mongo_auth/password_reset_email.html', use_https=False, token_generator=tokens.default_token_generator, from_email=None, request=None):
+        for user in self.users_cache:
+            if user.password == hashers.UNUSABLE_PASSWORD:
+                continue
+            if not domain_override:
+                current_site = sites_models.get_current_site(request)
+                site_name = current_site.name
+                domain = current_site.domain
+            else:
+                site_name = domain = domain_override
+            c = {
+                'PASSWORD_RESET_TIMEOUT_DAYS': settings.PASSWORD_RESET_TIMEOUT_DAYS,
+                'EMAIL_SUBJECT_PREFIX': settings.EMAIL_SUBJECT_PREFIX,
+                'SITE_NAME': getattr(settings, 'SITE_NAME', None),
+                'email': user.email,
+                'email_address': user.email,
+                'request': request,
+                'domain': domain,
+                'site_name': site_name,
+                'uid': objectid_to_base36(user.id),
+                'user': user,
+                'token': token_generator.make_token(user),
+                'protocol': use_https and 'https' or 'http',
+            }
+            subject = loader.render_to_string(subject_template_name, c)
+            # Email subject *must not* contain newlines
+            subject = ''.join(subject.splitlines())
+            email = loader.render_to_string(email_template_name, c)
+            user.email_user(subject, email, from_email)
+        messages.success(request, _("We've e-mailed you instructions for setting your password to the e-mail address you submitted. You should be receiving it shortly."))

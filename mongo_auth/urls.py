@@ -1,6 +1,7 @@
 from django.conf.urls import patterns, include, url
+from django.core import urlresolvers
 
-from . import views
+from . import forms, views
 
 def build_patterns(alternative_views=None):
     def get_view(name):
@@ -36,6 +37,18 @@ def build_patterns(alternative_views=None):
         url(r'^account/password/change/$', get_view('PasswordChangeView').as_view(), name='password_change'),
         url(r'^account/confirmation/$', get_view('EmailConfirmationSendToken').as_view(), name='email_confirmation_send_token'),
         url(r'^account/confirmation/token/(?:(?P<confirmation_token>\w+)/)?$', get_view('EmailConfirmationProcessToken').as_view(), name='email_confirmaton_process_token'),
+
+        # Password reset
+        url(r'^account/password/reset/$', get_view('password_reset'), name='password_reset', kwargs={
+            'password_reset_form': forms.PasswordResetForm,
+            'template_name': 'mongo_auth/password_reset_form.html',
+            'email_template_name': 'mongo_auth/password_reset_email.txt',
+            'subject_template_name': 'mongo_auth/password_reset_subject.txt',
+        }),
+        url(r'^account/password/confirm/(?P<uidb36>[-\w]+)/(?P<token>[-\w]+)/$', get_view('password_reset_confirm'), name='password_reset_confirm', kwargs={
+            'post_reset_redirect': urlresolvers.reverse_lazy('login'),
+            'template_name': 'mongo_auth/password_reset_confirm.html',
+        }),
     )
 
 urlpatterns = build_patterns()

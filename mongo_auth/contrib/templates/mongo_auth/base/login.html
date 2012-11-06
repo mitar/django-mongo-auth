@@ -13,7 +13,18 @@
                 {% url "login" as form_action %}
                 {% include "mongo_auth/form.html" %}
             {% endwith %}
-            <a href="{% url "registration" %}" class="buttons">{% trans "Register" %}</a>
+            {% url "registration" as registration_url %}
+            {% if registration_url %}
+                <div class="registration_link">
+                    <a href="{% url "registration" %}" class="buttons">{% trans "Register" %}</a>
+                </div>
+            {% endif %}
+            {% url "password_reset" as password_reset_url %}
+            {% if password_reset_url %}
+                <div class="password_reset_link">
+                    <a href="{{ password_reset_url }}">{% trans "Forgotten your password or username?" %}</a>
+                </div>
+            {% endif %}
         </div>
         <div id="other_login_options">
             <ul>
