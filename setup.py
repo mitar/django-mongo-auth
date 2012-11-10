@@ -16,7 +16,7 @@ if __name__ == '__main__':
     setup(
         name = 'django-mongo-auth',
         version = VERSION,
-        description = "Django authentication based on an extensible MongoEngine user class. ",
+        description = "Django authentication based on an extensible MongoEngine user class.",
         long_description = open(os.path.join(os.path.dirname(__file__), 'README.rst')).read(),
         author = 'Mitar',
         author_email = 'mitar.django@tnode.com',
