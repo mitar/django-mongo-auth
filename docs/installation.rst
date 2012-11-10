@@ -13,7 +13,7 @@ to use provided templates, you can add ``mongo_auth.contrib``, too.
 Add ``django_browserid.context_processors.browserid_form`` to ``TEMPLATE_CONTEXT_PROCESSORS`` to conclude
 ``django_browserid`` installation.
 
-Afterwards, you configure authentication providers you want to offer:
+Afterwards, you configure authentication providers you want to offer::
 
     AUTHENTICATION_BACKENDS = (
         'mongo_auth.backends.MongoEngineBackend',
@@ -26,6 +26,7 @@ Afterwards, you configure authentication providers you want to offer:
     )
 
 Some require API keys by providers. Available settings:
+
 * ``FACEBOOK_APP_ID``
 * ``FACEBOOK_APP_SECRET``
 * ``TWITTER_CONSUMER_KEY``
