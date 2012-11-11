@@ -7,11 +7,13 @@ Using pip_ simply by doing::
 
 .. _pip: http://pypi.python.org/pypi/pip
 
-You should then add ``mongo_auth`` and dependency ``django_browserid`` to ``INSTALLED_APPS``. Optionally,
-to use provided templates, you can add ``mongo_auth.contrib``, too.
-
-Add ``django_browserid.context_processors.browserid_form`` to ``TEMPLATE_CONTEXT_PROCESSORS`` to conclude
+You should then add ``mongo_auth`` and dependency ``django_browserid`` to ``INSTALLED_APPS``. Add
+``django_browserid.context_processors.browserid_form`` to ``TEMPLATE_CONTEXT_PROCESSORS`` to conclude
 ``django_browserid`` installation.
+
+Optionally, to use provided templates, you can add ``mongo_auth.contrib`` and ``sekizai`` to
+``INSTALLED_APPS``, and ``mongo_auth.contrib.context_processors.mongo_auth`` and
+``sekizai.context_processors.sekizai`` to ``TEMPLATE_CONTEXT_PROCESSORS``, too.
 
 Afterwards, you configure authentication providers you want to offer::
 
@@ -44,3 +46,7 @@ Default is ``mongo_auth.models.User``.
 
 Because ``django.contrib.sites`` does not work with MongoEngine, you can use ``SITE_NAME`` and ``DEFAULT_REQUEST``
 to configure what site name is displayed and manually how full URLs are generated, respectively.
+
+Add to project's ``urls.py``::
+
+    url(r'^', include('mongo_auth.contrib.urls')),
