@@ -1,5 +1,6 @@
 {% load future i18n staticfiles sekizai_tags %}
 
+{% addtoblock "js" %}<script src="https://browserid.org/include.js" type="text/javascript"></script>{% endaddtoblock %}
 {% addtoblock "js" %}<script src="{% static "browserid/browserid.js" %}" type="text/javascript"></script>{% endaddtoblock %}
 {% addtoblock "js" %}<script src="{% static "mongo_auth/js/browserid_login.js" %}" type="text/javascript"></script>{% endaddtoblock %}
 

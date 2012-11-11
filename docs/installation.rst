@@ -9,7 +9,8 @@ Using pip_ simply by doing::
 
 You should then add ``mongo_auth`` and dependency ``django_browserid`` to ``INSTALLED_APPS``. Add
 ``django_browserid.context_processors.browserid_form`` to ``TEMPLATE_CONTEXT_PROCESSORS`` to conclude
-``django_browserid`` installation.
+``django_browserid`` installation. Add ``mongo_auth.middleware.LazyUserMiddleware`` just after
+``django.contrib.auth.middleware.AuthenticationMiddleware`` in ``MIDDLEWARE_CLASSES``.
 
 Optionally, to use provided templates, you can add ``mongo_auth.contrib`` and ``sekizai`` to
 ``INSTALLED_APPS``, and ``mongo_auth.contrib.context_processors.mongo_auth`` and
