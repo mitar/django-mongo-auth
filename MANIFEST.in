@@ -1,5 +1,7 @@
 recursive-include mongo_auth/static *
+recursive-include mongo_auth/locale *
 recursive-include mongo_auth/contrib/static *
+recursive-include mongo_auth/contrib/templates *
 include docs/Makefile docs/*.py docs/*.rst
 include COPYING
 include LICENSE
