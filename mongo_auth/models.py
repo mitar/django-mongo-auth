@@ -50,7 +50,7 @@ class User(auth.User):
     )
     lazyuser_username = mongoengine.BooleanField(default=True)
 
-    facebook_access_token = mongoengine.StringField(max_length=150)
+    facebook_access_token = mongoengine.StringField(max_length=255)
     facebook_profile_data = mongoengine.DictField()
 
     twitter_access_token = mongoengine.EmbeddedDocumentField(TwitterAccessToken)
