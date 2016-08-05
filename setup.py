@@ -41,6 +41,6 @@ if __name__ == '__main__':
             'tweepy>=1.9',
             'django-browserid>=0.6',
             'django-missing>=0.1.10',
-            'django-sekizai>=0.5,'
+            'django-sekizai>=0.5'
         ],
     )
